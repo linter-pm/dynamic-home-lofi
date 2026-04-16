@@ -276,7 +276,7 @@ export default function HomePage() {
       {/* Main content area, offset by sidebar width on desktop */}
       <div className="lg:ml-64 min-h-screen flex flex-col">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-white border-b border-gp-border h-14">
+        <header className="sticky top-0 z-30 bg-white border-b border-[#E5E5E5] h-14">
           <div className="flex items-center gap-3 px-4 lg:px-6 h-full">
             {/* Hamburger, mobile only */}
             <button
@@ -292,7 +292,7 @@ export default function HomePage() {
 
         {/* Page content */}
         <main className="flex-1 p-4 lg:p-8">
-          <div className="max-w-[640px] mx-auto space-y-8">
+          <div className="space-y-8">
 
             {/* ── Section 1: Greeting Header ──────────────── */}
             <div>
@@ -360,11 +360,11 @@ export default function HomePage() {
             {/* ── Section 3: This Week's Focus ────────────── */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-[12px] font-bold text-gp-text-secondary uppercase tracking-wider">
+                <h2 className="font-outfit text-base font-semibold text-gp-text">
                   This Week&rsquo;s Focus
                 </h2>
                 {activeWeek >= 3 && (
-                  <span className="text-sm font-medium text-gp-blue">
+                  <span className="text-xs font-medium text-[#D97706] bg-[#FFFBEB] rounded-full px-2.5 py-1">
                     Vote coming
                   </span>
                 )}
@@ -402,39 +402,36 @@ export default function HomePage() {
 
             {/* ── Section 4: Active Poll (conditional) ────── */}
             {showPoll && (
-              <div className="bg-midnight-900 rounded-2xl p-5 lg:p-6 text-white">
+              <div className="bg-white border border-gp-border rounded-2xl p-5 lg:p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <BarChart3 className="w-5 h-5 text-[#DBEAFE]" />
+                  <div className="w-10 h-10 bg-[#EFF6FF] rounded-lg flex items-center justify-center flex-shrink-0">
+                    <BarChart3 className="w-5 h-5 text-gp-blue" />
                   </div>
-                  <h3 className="text-base font-semibold text-white">
-                    Your Affordable Housing Priorities poll is active
-                  </h3>
+                  <div>
+                    <h3 className="text-base font-semibold text-gp-text">
+                      First Poll Collecting
+                    </h3>
+                    <p className="text-sm text-gp-text-secondary">
+                      Constituent pulse check &mdash; collecting responses
+                    </p>
+                  </div>
                 </div>
 
-                {/* Segmented progress bar */}
-                <div className="h-2.5 bg-white/10 rounded-full overflow-hidden flex mb-3">
+                {/* Progress bar */}
+                <div className="h-2 bg-[#EEF3F6] rounded-full overflow-hidden mb-3">
                   <div
-                    className="bg-[#FF9800] h-full rounded-l-full"
-                    style={{ width: '11%' }}
-                  />
-                  <div
-                    className="bg-[#30A541] h-full"
-                    style={{ width: '9%' }}
-                  />
-                  <div
-                    className="bg-gp-blue h-full rounded-r-full"
-                    style={{ width: `${(pollResponses / pollTotal) * 100 - 20}%` }}
+                    className="bg-gp-blue h-full rounded-full transition-all duration-500"
+                    style={{ width: `${(pollResponses / pollTotal) * 100}%` }}
                   />
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-white/70">
-                    <span className="text-white font-semibold">{pollResponses}</span> of {pollTotal} responses
+                  <span className="text-gp-text-secondary">
+                    <span className="text-gp-text font-semibold">{pollResponses}</span> of {pollTotal} responses
                   </span>
-                  <span className="flex items-center gap-1.5 text-white/70">
+                  <span className="flex items-center gap-1.5 text-gp-text-secondary">
                     <Clock className="w-3.5 h-3.5" />
-                    {pollDaysLeft} day{pollDaysLeft !== 1 ? 's' : ''} left
+                    Results in ~{pollDaysLeft} day{pollDaysLeft !== 1 ? 's' : ''}
                   </span>
                 </div>
               </div>
@@ -442,7 +439,7 @@ export default function HomePage() {
 
             {/* ── Section 5: District at a Glance ─────────── */}
             <div>
-              <h2 className="text-[12px] font-bold text-gp-text-secondary uppercase tracking-wider mb-4">
+              <h2 className="font-outfit text-base font-semibold text-gp-text mb-4">
                 Your District at a Glance
               </h2>
               <div className="bg-white border border-gp-border rounded-2xl divide-y divide-gp-border-light">
@@ -468,7 +465,7 @@ export default function HomePage() {
 
             {/* ── Section 6: Quick Actions ─────────────────── */}
             <div>
-              <h2 className="text-[12px] font-bold text-gp-text-secondary uppercase tracking-wider mb-4">
+              <h2 className="font-outfit text-base font-semibold text-gp-text mb-4">
                 Quick Actions
               </h2>
               <div className="grid grid-cols-3 gap-3">
@@ -505,28 +502,26 @@ export default function HomePage() {
             </div>
 
             {/* ── Section 7: Role 101 Checklist ────────────── */}
-            <div className="bg-midnight-900 rounded-2xl p-5 lg:p-6 text-white">
+            <div className="bg-white border border-gp-border rounded-2xl p-5 lg:p-6">
               <div className="flex items-start justify-between mb-1">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Home className="w-[18px] h-[18px] text-[#DBEAFE]" />
-                  </div>
-                  <div>
-                    <h3 className="font-outfit font-semibold text-base text-white leading-tight">
-                      Your Role 101
-                    </h3>
-                    <p className="text-xs text-white/50 mt-0.5">
-                      Charlotte City Council Member
-                    </p>
-                  </div>
+                <div>
+                  <h2 className="font-outfit font-semibold text-base text-gp-text">
+                    Week {activeWeek} Progress
+                  </h2>
+                  <p className="text-sm text-gp-text-secondary mt-0.5">
+                    {roleData.items.filter(i => i.done).length} of {roleData.items.length} milestones completed
+                  </p>
                 </div>
-                <span className="text-sm font-semibold text-white/70">
-                  {roleData.progress}%
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-gp-blue">
+                    {roleData.progress}%
+                  </span>
+                  <span className="text-sm text-gp-text-muted">Hide</span>
+                </div>
               </div>
 
               {/* Progress bar */}
-              <div className="flex-1 bg-white/10 rounded-full h-2 overflow-hidden mt-4 mb-5">
+              <div className="flex-1 bg-[#EEF3F6] rounded-full h-2 overflow-hidden mt-4 mb-5">
                 <div
                   className="bg-gp-blue h-full rounded-full transition-all duration-500"
                   style={{ width: `${roleData.progress}%` }}
@@ -534,23 +529,23 @@ export default function HomePage() {
               </div>
 
               {/* Checklist */}
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 {roleData.items.map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
                     {item.done ? (
-                      <CheckCircle2 className="w-5 h-5 text-[#30A541] flex-shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-[#059669] flex-shrink-0" />
                     ) : (
-                      <div className="w-5 h-5 rounded-full border-2 border-white/30 flex-shrink-0" />
+                      <div className="w-5 h-5 rounded-full border-2 border-gp-border flex-shrink-0" />
                     )}
-                    <span
-                      className={`text-sm ${
-                        item.done
-                          ? 'text-white/50 line-through'
-                          : 'text-white/90'
-                      }`}
-                    >
-                      {item.label}
-                    </span>
+                    <div>
+                      <span
+                        className={`text-sm font-medium ${
+                          item.done ? 'text-gp-text-muted line-through' : 'text-gp-text'
+                        }`}
+                      >
+                        {item.label}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>

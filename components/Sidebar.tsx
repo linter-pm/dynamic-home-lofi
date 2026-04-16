@@ -28,7 +28,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar panel */}
       <aside
         className={`
-          fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gp-border
+          fixed top-0 left-0 z-50 h-full w-64 bg-[#FAFAFA] border-r border-[#E5E5E5]
           flex flex-col
           transition-transform duration-200 ease-in-out
           lg:translate-x-0

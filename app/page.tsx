@@ -1,13 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, Badge, Button, ProgressBar, cn } from '@goodparty/serve-ui';
-import { DarkSidebar } from '@/components/DarkSidebar';
+import Sidebar from '@/components/Sidebar';
 import {
-  Home,
-  BarChart3,
-  MessageCircle,
-  User,
   Sparkles,
   ChevronRight,
   Clock,
@@ -15,163 +10,201 @@ import {
   TrendingDown,
   Minus,
   Menu,
-  X,
+  BarChart3,
+  Eye,
+  Send,
+  Calendar,
+  DollarSign,
+  FileText,
+  Home,
+  CheckCircle2,
 } from 'lucide-react';
+
+/* ── Week options and types ────────────────────────────────── */
 
 const WEEK_OPTIONS = [1, 3, 12] as const;
 type WeekOption = (typeof WEEK_OPTIONS)[number];
 
-const navItems = [
-  { label: 'Home', icon: <Home size={20} />, active: true },
-  { label: 'Polls', icon: <BarChart3 size={20} /> },
-  { label: 'Chat', icon: <MessageCircle size={20} /> },
-  { label: 'Profile', icon: <User size={20} /> },
-];
-
 /* ── Week-sensitive data ─────────────────────────────────── */
 
-const weekGlance: Record<WeekOption, { subtitle: string; body: string }> = {
+const weekSubtitles: Record<WeekOption, string> = {
+  1: 'Welcome to your new role. Your first meeting is Thursday.',
+  3: 'Budget season is here. Your committee work starts now.',
+  12: 'Quarter one complete. Your priorities are gaining traction.',
+};
+
+const weekGlance: Record<WeekOption, { heading: string; body: string }> = {
   1: {
-    subtitle: "Week 1 — welcome to your new role.",
-    body: "You represent 12,400 constituents in District 5. Your first City Council meeting is this Thursday at 6 PM. Three agenda items need your attention, including the proposed FY2027 budget timeline. Your colleagues have been serving an average of 4.2 years, so don't hesitate to lean on their experience.",
+    heading: 'Your first week on Council',
+    body: 'You represent 12,400 constituents in District 5. Your first City Council meeting is this Thursday at 6 PM. Three agenda items need your attention, including the proposed FY2027 budget timeline. Your colleagues have been serving an average of 4.2 years, so lean on their experience as you get settled.',
   },
   3: {
-    subtitle: "Week 3 — you're finding your footing.",
-    body: "You represent 12,400 constituents in District 5. Based on recent constituent outreach, affordable housing and road infrastructure are the top concerns. Your next Council meeting is Monday, with 6 items on the agenda including a zoning variance for the Eastside Corridor. Council Member Rivera has signaled support for your amendment.",
+    heading: 'Committee season is underway',
+    body: 'Your Housing and Transportation committees have active decisions. Key votes coming in the next few weeks.',
   },
   12: {
-    subtitle: "Week 12 — you're hitting your stride.",
-    body: "You represent 12,400 constituents in District 5. Over the past quarter you've participated in 11 Council meetings and responded to 84 constituent inquiries. Your affordable housing poll received the highest response rate in the district's history. The budget committee meets next Tuesday to finalize capital improvement priorities.",
+    heading: 'Quarter one in the books',
+    body: 'Over the past quarter you participated in 11 Council meetings and responded to 84 constituent inquiries. Your affordable housing poll received the highest response rate in the district\'s history. The budget committee meets next Tuesday to finalize capital improvement priorities.',
   },
 };
 
-const weekFocus: Record<
-  WeekOption,
-  Array<{
-    badge: string;
-    badgeVariant: 'orange' | 'green' | 'blue' | 'purple';
-    title: string;
-    description: string;
-  }>
-> = {
+const weekProgress: Record<WeekOption, { day: number; total: number }> = {
+  1: { day: 3, total: 90 },
+  3: { day: 15, total: 90 },
+  12: { day: 84, total: 90 },
+};
+
+/* ── Focus card data ─────────────────────────────────────── */
+
+interface FocusCardData {
+  badge: string;
+  badgeVariant: 'red' | 'green' | 'amber' | 'blue';
+  badgeIcon: 'calendar' | 'trending' | 'dollar' | 'file';
+  title: string;
+  description: string;
+}
+
+const badgeStyles: Record<string, string> = {
+  red: 'bg-[#FEF2F2] text-[#E00C30] border border-[#FECACA]',
+  green: 'bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]',
+  amber: 'bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A]',
+  blue: 'bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]',
+};
+
+function BadgeIcon({ type, className }: { type: string; className?: string }) {
+  const cn = className || 'w-3 h-3';
+  switch (type) {
+    case 'calendar': return <Calendar className={cn} />;
+    case 'trending': return <TrendingUp className={cn} />;
+    case 'dollar': return <DollarSign className={cn} />;
+    case 'file': return <FileText className={cn} />;
+    default: return null;
+  }
+}
+
+const weekFocus: Record<WeekOption, FocusCardData[]> = {
   1: [
     {
       badge: 'Meeting in 5 days',
-      badgeVariant: 'orange',
+      badgeVariant: 'red',
+      badgeIcon: 'calendar',
       title: 'Prepare for your first Council meeting',
-      description:
-        'Review the agenda packet and learn the procedures. Robert\'s Rules of Order govern how motions are made and voted on.',
+      description: 'Review the agenda packet and learn the procedures. Robert\'s Rules of Order govern how motions are made and voted on.',
     },
     {
       badge: 'Getting started',
       badgeVariant: 'green',
+      badgeIcon: 'trending',
       title: 'Meet your fellow Council members',
-      description:
-        'Six colleagues serve alongside you. Building relationships early will help you find allies on shared priorities.',
+      description: 'Six colleagues serve alongside you. Building relationships early will help you find allies on shared priorities.',
     },
     {
       badge: 'Setup required',
       badgeVariant: 'blue',
+      badgeIcon: 'file',
       title: 'Set up your constituent communication',
-      description:
-        'Connect your contact list so you can reach District 5 residents when it matters.',
+      description: 'Connect your contact list so you can reach District 5 residents when it matters.',
     },
     {
       badge: 'Orientation',
-      badgeVariant: 'purple',
+      badgeVariant: 'amber',
+      badgeIcon: 'file',
       title: 'Complete your governance orientation',
-      description:
-        'A personalized walkthrough of Charlotte\'s government structure, budget process, and your role on Council.',
+      description: 'A personalized walkthrough of Charlotte\'s government structure, budget process, and your role on Council.',
     },
   ],
   3: [
     {
       badge: 'Meeting in 3 days',
-      badgeVariant: 'orange',
+      badgeVariant: 'red',
+      badgeIcon: 'calendar',
       title: 'Eastside Corridor zoning variance',
-      description:
-        'The Planning Commission recommended approval 4-1. Review the staff report and decide your position before Monday.',
+      description: 'The Planning Commission recommended approval 4-1. Review the staff report and decide your position before Monday.',
     },
     {
       badge: 'Top concern',
       badgeVariant: 'green',
+      badgeIcon: 'trending',
       title: 'Affordable housing feedback summary',
-      description:
-        '68% of respondents support increasing the housing trust fund. Draft talking points are ready for your review.',
+      description: '68% of respondents support increasing the housing trust fund. Draft talking points are ready for your review.',
     },
     {
       badge: 'Budget deadline',
-      badgeVariant: 'blue',
+      badgeVariant: 'amber',
+      badgeIcon: 'dollar',
       title: 'FY2027 capital improvement requests',
-      description:
-        'Submit your district priority list by Friday. Road resurfacing and park lighting are the top two from your constituents.',
+      description: 'Submit your district priority list by Friday. Road resurfacing and park lighting are the top two from your constituents.',
     },
     {
       badge: 'Active legislation',
-      badgeVariant: 'purple',
+      badgeVariant: 'blue',
+      badgeIcon: 'file',
       title: 'Short-term rental ordinance update',
-      description:
-        'Second reading scheduled for next month. Three Council members have co-sponsored your proposed amendment.',
+      description: 'Second reading scheduled for next month. Three Council members have co-sponsored your proposed amendment.',
     },
   ],
   12: [
     {
       badge: 'Meeting Tuesday',
-      badgeVariant: 'orange',
+      badgeVariant: 'red',
+      badgeIcon: 'calendar',
       title: 'Budget committee: capital priorities',
-      description:
-        'Final vote on the $42M capital improvement plan. Your district secured $3.2M for road infrastructure.',
+      description: 'Final vote on the $42M capital improvement plan. Your district secured $3.2M for road infrastructure.',
     },
     {
       badge: 'Constituent win',
       badgeVariant: 'green',
+      badgeIcon: 'trending',
       title: 'Affordable housing trust fund approved',
-      description:
-        'The $5M annual allocation passed 7-2. Share the results with your constituents and credit their input.',
+      description: 'The $5M annual allocation passed 7-2. Share the results with your constituents and credit their input.',
     },
     {
       badge: 'Upcoming vote',
-      badgeVariant: 'blue',
+      badgeVariant: 'amber',
+      badgeIcon: 'dollar',
       title: 'Transit expansion study authorization',
-      description:
-        'Staff requests $200K for a feasibility study. Three districts would benefit, including yours.',
+      description: 'Staff requests $200K for a feasibility study. Three districts would benefit, including yours.',
     },
     {
       badge: 'Q1 report',
-      badgeVariant: 'purple',
+      badgeVariant: 'blue',
+      badgeIcon: 'file',
       title: 'Quarterly constituent engagement report',
-      description:
-        'Your response rate is 22% above the district average. Review the full report and share highlights.',
+      description: 'Your response rate is 22% above the district average. Review the full report and share highlights.',
     },
   ],
 };
+
+/* ── District priorities ─────────────────────────────────── */
 
 const districtPriorities: Record<
   WeekOption,
   Array<{ rank: number; name: string; score: number; trend: 'up' | 'down' | 'flat' }>
 > = {
   1: [
-    { rank: 1, name: 'Road infrastructure', score: 72.1, trend: 'flat' },
-    { rank: 2, name: 'Affordable housing', score: 66.4, trend: 'up' },
-    { rank: 3, name: 'Public safety', score: 54.8, trend: 'flat' },
-    { rank: 4, name: 'Park improvements', score: 48.3, trend: 'down' },
-    { rank: 5, name: 'Transit access', score: 41.7, trend: 'up' },
+    { rank: 1, name: 'Road Infrastructure', score: 72.1, trend: 'flat' },
+    { rank: 2, name: 'Affordable Housing', score: 66.4, trend: 'up' },
+    { rank: 3, name: 'Public Safety', score: 54.8, trend: 'flat' },
+    { rank: 4, name: 'Park Improvements', score: 48.3, trend: 'down' },
+    { rank: 5, name: 'Transit Access', score: 41.7, trend: 'up' },
   ],
   3: [
-    { rank: 1, name: 'Affordable housing', score: 66.4, trend: 'up' },
-    { rank: 2, name: 'Road infrastructure', score: 58.2, trend: 'down' },
-    { rank: 3, name: 'Public safety', score: 52.1, trend: 'flat' },
-    { rank: 4, name: 'Park improvements', score: 47.8, trend: 'up' },
-    { rank: 5, name: 'Transit access', score: 39.5, trend: 'down' },
+    { rank: 1, name: 'Affordable Housing', score: 66.4, trend: 'up' },
+    { rank: 2, name: 'Road Infrastructure', score: 58.2, trend: 'down' },
+    { rank: 3, name: 'Public Safety', score: 52.1, trend: 'flat' },
+    { rank: 4, name: 'Park Improvements', score: 47.8, trend: 'up' },
+    { rank: 5, name: 'Transit Access', score: 39.5, trend: 'down' },
   ],
   12: [
-    { rank: 1, name: 'Affordable housing', score: 71.2, trend: 'up' },
-    { rank: 2, name: 'Road infrastructure', score: 63.4, trend: 'up' },
-    { rank: 3, name: 'Transit access', score: 55.9, trend: 'up' },
-    { rank: 4, name: 'Public safety', score: 50.1, trend: 'down' },
-    { rank: 5, name: 'Park improvements', score: 44.6, trend: 'flat' },
+    { rank: 1, name: 'Affordable Housing', score: 71.2, trend: 'up' },
+    { rank: 2, name: 'Road Infrastructure', score: 63.4, trend: 'up' },
+    { rank: 3, name: 'Transit Access', score: 55.9, trend: 'up' },
+    { rank: 4, name: 'Public Safety', score: 50.1, trend: 'down' },
+    { rank: 5, name: 'Park Improvements', score: 44.6, trend: 'flat' },
   ],
 };
+
+/* ── Role 101 data ───────────────────────────────────────── */
 
 const role101: Record<
   WeekOption,
@@ -212,341 +245,319 @@ const role101: Record<
 /* ── Trend icon helper ───────────────────────────────────── */
 
 function TrendIcon({ trend }: { trend: 'up' | 'down' | 'flat' }) {
-  if (trend === 'up')
-    return <TrendingUp size={14} className="text-gp-success" />;
-  if (trend === 'down')
-    return <TrendingDown size={14} className="text-gp-error" />;
-  return <Minus size={14} className="text-gp-text-muted" />;
-}
-
-/* ── Badge variant mapping ───────────────────────────────── */
-
-function focusBadgeVariant(v: 'orange' | 'green' | 'blue' | 'purple') {
-  const map: Record<string, 'orange' | 'green' | 'blue' | 'purple'> = {
-    orange: 'orange',
-    green: 'green',
-    blue: 'blue',
-    purple: 'purple',
-  };
-  return map[v] ?? 'blue';
+  if (trend === 'up') return <TrendingUp className="w-4 h-4 text-[#059669]" />;
+  if (trend === 'down') return <TrendingDown className="w-4 h-4 text-[#E00C30]" />;
+  return <Minus className="w-4 h-4 text-gp-text-muted" />;
 }
 
 /* ── Page ─────────────────────────────────────────────────── */
 
 export default function HomePage() {
   const [activeWeek, setActiveWeek] = useState<WeekOption>(3);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const glance = weekGlance[activeWeek];
   const focus = weekFocus[activeWeek];
   const priorities = districtPriorities[activeWeek];
   const roleData = role101[activeWeek];
+  const progress = weekProgress[activeWeek];
+  const progressPct = Math.round((progress.day / progress.total) * 100);
 
   // Poll data only shows in week 3+
   const showPoll = activeWeek >= 3;
   const pollResponses = activeWeek === 3 ? 127 : 412;
   const pollTotal = 500;
   const pollDaysLeft = activeWeek === 3 ? 4 : 1;
-  const pollProgress = (pollResponses / pollTotal) * 100;
 
   return (
-    <div className="flex min-h-screen bg-white">
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:block flex-shrink-0 h-screen sticky top-0">
-        <DarkSidebar navItems={navItems} />
-      </aside>
+    <div className="min-h-screen bg-gp-bg-subtle">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Mobile sidebar overlay */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/30"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          <div className="relative z-10 h-full w-[72px]">
-            <DarkSidebar navItems={navItems} />
-          </div>
-        </div>
-      )}
-
-      {/* Main content */}
-      <div className="flex-1 min-w-0">
-        {/* Mobile header */}
-        <header className="lg:hidden flex items-center h-14 px-4 border-b border-gp-border bg-white sticky top-0 z-10">
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gp-bg-subtle"
-            aria-label="Open navigation"
-          >
-            <Menu size={20} />
-          </button>
-          <div className="ml-3">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                stroke="#DC1438"
-                strokeWidth="1.8"
-                fill="none"
-              />
-              <path
-                d="M12 7l1.12 2.27 2.5.36-1.81 1.77.43 2.5L12 12.77 9.76 13.9l.43-2.5-1.81-1.77 2.5-.36L12 7z"
-                fill="#2563EB"
-              />
-            </svg>
+      {/* Main content area, offset by sidebar width on desktop */}
+      <div className="lg:ml-64 min-h-screen flex flex-col">
+        {/* Top bar */}
+        <header className="sticky top-0 z-30 bg-white border-b border-gp-border h-14">
+          <div className="flex items-center gap-3 px-4 lg:px-6 h-full">
+            {/* Hamburger, mobile only */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gp-bg-subtle transition-colors text-gp-text-secondary"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <span className="text-sm text-gp-text font-medium">Dashboard</span>
           </div>
         </header>
 
-        <div className="max-w-[640px] mx-auto px-4 lg:px-6 py-6 lg:py-8">
-          {/* ── Greeting ──────────────────────────────────── */}
-          <section className="mb-6">
-            <h1 className="font-outfit text-[28px] lg:text-[32px] font-bold text-gp-text leading-tight">
-              Good morning, Dimple
-            </h1>
-            <p className="text-sm text-gp-text-secondary mt-1">
-              Week {activeWeek} &middot; Charlotte City Council Member &middot; District 5
-            </p>
+        {/* Page content */}
+        <main className="flex-1 p-4 lg:p-8">
+          <div className="max-w-[640px] mx-auto space-y-8">
 
-            {/* Week selector pills */}
-            <div className="flex gap-2 mt-4">
-              {WEEK_OPTIONS.map((w) => (
-                <button
-                  key={w}
-                  onClick={() => setActiveWeek(w)}
-                  className={cn(
-                    'px-4 py-2 rounded-full text-sm font-medium transition-colors',
-                    activeWeek === w
-                      ? 'bg-midnight-900 text-white'
-                      : 'bg-gp-bg-subtle text-gp-text-secondary hover:bg-gp-border-light',
-                  )}
-                >
-                  Week {w}
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {/* ── Your Week at a Glance ────────────────────── */}
-          <section className="mb-6">
-            <div className="rounded-2xl bg-gradient-to-br from-[#FEF3C7] to-[#FDE68A] p-5 lg:p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles size={16} className="text-[#92400E]" />
-                <span className="text-[11px] font-semibold tracking-wider uppercase text-[#92400E]">
-                  Your Week at a Glance
-                </span>
-              </div>
-              <h2 className="font-outfit text-lg font-semibold text-[#1E1F20] mb-2">
-                {glance.subtitle}
-              </h2>
-              <p className="text-sm leading-relaxed text-[#44403C]">
-                {glance.body}
+            {/* ── Section 1: Greeting Header ──────────────── */}
+            <div>
+              <h1 className="font-outfit font-bold text-[28px] lg:text-[32px] text-gp-text leading-tight">
+                Good morning, Dimple
+              </h1>
+              <p className="text-sm text-gp-text-secondary mt-1.5">
+                Week {activeWeek} &mdash; {weekSubtitles[activeWeek]}
               </p>
-              <button className="mt-3 text-sm font-medium text-[#92400E] hover:text-[#78350F] inline-flex items-center gap-1 transition-colors">
-                See what&apos;s on your plate this week
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          </section>
 
-          {/* ── This Week's Focus ────────────────────────── */}
-          <section className="mb-6">
-            <h2 className="font-outfit text-lg font-semibold text-gp-text mb-3">
-              This Week&apos;s Focus
-            </h2>
-            <div className="flex flex-col gap-3">
-              {focus.map((item, i) => (
-                <Card key={i} padding="md" className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <Badge variant={focusBadgeVariant(item.badgeVariant)} className="mb-2">
+              {/* Week selector pills */}
+              <div className="flex items-center gap-2 mt-4">
+                {WEEK_OPTIONS.map((w) => (
+                  <button
+                    key={w}
+                    onClick={() => setActiveWeek(w)}
+                    className={`
+                      px-4 py-1.5 rounded-full text-sm font-medium transition-colors
+                      ${
+                        activeWeek === w
+                          ? 'bg-midnight-900 text-white'
+                          : 'text-gp-text-secondary hover:text-gp-text hover:bg-[#EEF3F6]'
+                      }
+                    `}
+                  >
+                    Week {w}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Section 1b: Day Progress ─────────────────── */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gp-text-secondary whitespace-nowrap">
+                Day {progress.day} of {progress.total}
+              </span>
+              <div className="flex-1 h-2 bg-[#EEF3F6] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gp-blue rounded-full transition-all duration-500"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+              <span className="text-sm text-gp-text-muted tabular-nums">
+                {progressPct}%
+              </span>
+            </div>
+
+            {/* ── Section 2: Week at a Glance (amber banner) ─ */}
+            <div className="bg-gradient-to-br from-[#FEF3C7] to-[#FDE68A]/40 border border-[#FDE68A] rounded-2xl p-5 lg:p-6">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 bg-[#FDE68A] rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Sparkles className="w-4 h-4 text-[#92400E]" />
+                </div>
+                <div>
+                  <h2 className="font-outfit font-semibold text-base text-gp-text mb-1">
+                    {glance.heading}
+                  </h2>
+                  <p className="text-sm text-gp-text-secondary leading-relaxed">
+                    {glance.body}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Section 3: This Week's Focus ────────────── */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-[12px] font-bold text-gp-text-secondary uppercase tracking-wider">
+                  This Week&rsquo;s Focus
+                </h2>
+                {activeWeek >= 3 && (
+                  <span className="text-sm font-medium text-gp-blue">
+                    Vote coming
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {focus.map((item, i) => (
+                  <div
+                    key={i}
+                    className="bg-white border border-gp-border rounded-2xl p-5 hover:shadow-card-hover transition-shadow"
+                  >
+                    {/* Badge */}
+                    <span
+                      className={`inline-flex items-center gap-1 text-[12px] font-semibold rounded-full px-2.5 py-0.5 mb-3 ${badgeStyles[item.badgeVariant]}`}
+                    >
+                      <BadgeIcon type={item.badgeIcon} />
                       {item.badge}
-                    </Badge>
-                    <h3 className="text-[15px] font-semibold text-gp-text leading-snug">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-gp-text-secondary mt-1 leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-                  <ChevronRight
-                    size={18}
-                    className="text-gp-text-muted flex-shrink-0 mt-1"
-                  />
-                </Card>
-              ))}
-            </div>
-          </section>
+                    </span>
 
-          {/* ── Active Poll (conditional) ────────────────── */}
-          {showPoll && (
-            <section className="mb-6">
-              <div className="rounded-2xl bg-midnight-900 p-5 lg:p-6 text-white">
-                <h3 className="text-[15px] font-semibold mb-3">
-                  Your Affordable Housing Priorities poll is active
-                </h3>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <h3 className="text-base font-semibold text-gp-text leading-snug mb-1.5">
+                          {item.title}
+                        </h3>
+                        <p className="text-sm text-gp-text-secondary leading-relaxed">
+                          {item.description}
+                        </p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gp-text-muted flex-shrink-0 mt-0.5" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Section 4: Active Poll (conditional) ────── */}
+            {showPoll && (
+              <div className="bg-midnight-900 rounded-2xl p-5 lg:p-6 text-white">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <BarChart3 className="w-5 h-5 text-[#DBEAFE]" />
+                  </div>
+                  <h3 className="text-base font-semibold text-white">
+                    Your Affordable Housing Priorities poll is active
+                  </h3>
+                </div>
 
                 {/* Segmented progress bar */}
-                <div className="flex gap-1 h-2 rounded-full overflow-hidden mb-3">
+                <div className="h-2.5 bg-white/10 rounded-full overflow-hidden flex mb-3">
                   <div
-                    className="bg-[#FF9800] rounded-l-full"
-                    style={{ width: '38%' }}
+                    className="bg-[#FF9800] h-full rounded-l-full"
+                    style={{ width: '11%' }}
                   />
-                  <div className="bg-gp-success" style={{ width: '32%' }} />
                   <div
-                    className="bg-gp-blue rounded-r-full"
-                    style={{ width: `${pollProgress - 70}%` }}
+                    className="bg-[#30A541] h-full"
+                    style={{ width: '9%' }}
                   />
-                  <div className="bg-white/20 flex-1" />
+                  <div
+                    className="bg-gp-blue h-full rounded-r-full"
+                    style={{ width: `${(pollResponses / pollTotal) * 100 - 20}%` }}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-white/80">
-                    {pollResponses} of {pollTotal} responses
+                  <span className="text-white/70">
+                    <span className="text-white font-semibold">{pollResponses}</span> of {pollTotal} responses
                   </span>
-                  <span className="flex items-center gap-1 text-white/60">
-                    <Clock size={13} />
+                  <span className="flex items-center gap-1.5 text-white/70">
+                    <Clock className="w-3.5 h-3.5" />
                     {pollDaysLeft} day{pollDaysLeft !== 1 ? 's' : ''} left
                   </span>
                 </div>
               </div>
-            </section>
-          )}
+            )}
 
-          {/* ── Your District at a Glance ────────────────── */}
-          <section className="mb-6">
-            <h2 className="font-outfit text-lg font-semibold text-gp-text mb-3">
-              Your District at a Glance
-            </h2>
-            <Card padding="md">
-              <div className="flex flex-col gap-3">
+            {/* ── Section 5: District at a Glance ─────────── */}
+            <div>
+              <h2 className="text-[12px] font-bold text-gp-text-secondary uppercase tracking-wider mb-4">
+                Your District at a Glance
+              </h2>
+              <div className="bg-white border border-gp-border rounded-2xl divide-y divide-gp-border-light">
                 {priorities.map((p) => (
                   <div
                     key={p.rank}
-                    className="flex items-center gap-3"
+                    className="flex items-center gap-4 px-5 py-3.5"
                   >
-                    <span className="text-sm font-semibold text-gp-text-muted w-6 text-right">
+                    <span className="text-sm font-bold text-gp-text-muted w-6 text-center">
                       #{p.rank}
                     </span>
                     <span className="flex-1 text-sm font-medium text-gp-text">
                       {p.name}
                     </span>
-                    <span className="text-sm tabular-nums text-gp-text-secondary font-medium">
+                    <span className="text-sm font-semibold text-gp-text tabular-nums">
                       {p.score}
                     </span>
                     <TrendIcon trend={p.trend} />
                   </div>
                 ))}
               </div>
-            </Card>
-          </section>
-
-          {/* ── Quick Actions ────────────────────────────── */}
-          <section className="mb-6">
-            <h2 className="font-outfit text-lg font-semibold text-gp-text mb-3">
-              Quick Actions
-            </h2>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                {
-                  label: 'Poll your district',
-                  color: 'bg-gp-blue-light',
-                  iconColor: 'text-gp-blue',
-                  icon: <BarChart3 size={20} />,
-                },
-                {
-                  label: 'View results',
-                  color: 'bg-gp-success-light',
-                  iconColor: 'text-gp-success',
-                  icon: <TrendingUp size={20} />,
-                },
-                {
-                  label: 'Send update',
-                  color: 'bg-gp-warning-light',
-                  iconColor: 'text-gp-warning',
-                  icon: <MessageCircle size={20} />,
-                },
-              ].map((action) => (
-                <Card key={action.label} padding="sm" className="flex flex-col items-center text-center gap-2 py-4">
-                  <div
-                    className={cn(
-                      'w-10 h-10 rounded-full flex items-center justify-center',
-                      action.color,
-                    )}
-                  >
-                    <span className={action.iconColor}>{action.icon}</span>
-                  </div>
-                  <span className="text-xs font-medium text-gp-text leading-tight">
-                    {action.label}
-                  </span>
-                </Card>
-              ))}
             </div>
-          </section>
 
-          {/* ── Your Role 101 ────────────────────────────── */}
-          <section className="mb-10">
-            <div className="rounded-2xl bg-midnight-900 p-5 lg:p-6 text-white">
+            {/* ── Section 6: Quick Actions ─────────────────── */}
+            <div>
+              <h2 className="text-[12px] font-bold text-gp-text-secondary uppercase tracking-wider mb-4">
+                Quick Actions
+              </h2>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  {
+                    label: 'Poll your district',
+                    iconBg: 'bg-gp-blue',
+                    icon: <BarChart3 className="w-5 h-5 text-white" />,
+                  },
+                  {
+                    label: 'View results',
+                    iconBg: 'bg-[#059669]',
+                    icon: <Eye className="w-5 h-5 text-white" />,
+                  },
+                  {
+                    label: 'Send update',
+                    iconBg: 'bg-[#FF9800]',
+                    icon: <Send className="w-5 h-5 text-white" />,
+                  },
+                ].map((action) => (
+                  <button
+                    key={action.label}
+                    className="bg-white border border-gp-border rounded-2xl p-5 flex flex-col items-center text-center hover:shadow-card-hover transition-shadow"
+                  >
+                    <div
+                      className={`w-12 h-12 ${action.iconBg} rounded-full flex items-center justify-center mb-3`}
+                    >
+                      {action.icon}
+                    </div>
+                    <p className="text-sm font-medium text-gp-text">{action.label}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Section 7: Role 101 Checklist ────────────── */}
+            <div className="bg-midnight-900 rounded-2xl p-5 lg:p-6 text-white">
               <div className="flex items-start justify-between mb-1">
-                <div>
-                  <h3 className="text-[15px] font-semibold">Your Role 101</h3>
-                  <p className="text-sm text-white/60 mt-0.5">
-                    Charlotte City Council Member
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Home className="w-[18px] h-[18px] text-[#DBEAFE]" />
+                  </div>
+                  <div>
+                    <h3 className="font-outfit font-semibold text-base text-white leading-tight">
+                      Your Role 101
+                    </h3>
+                    <p className="text-xs text-white/50 mt-0.5">
+                      Charlotte City Council Member
+                    </p>
+                  </div>
                 </div>
-                <span className="text-sm font-medium text-white/60">
+                <span className="text-sm font-semibold text-white/70">
                   {roleData.progress}%
                 </span>
               </div>
 
               {/* Progress bar */}
-              <div className="h-1.5 rounded-full bg-white/15 overflow-hidden mt-3 mb-4">
+              <div className="flex-1 bg-white/10 rounded-full h-2 overflow-hidden mt-4 mb-5">
                 <div
-                  className="h-full rounded-full bg-gp-blue transition-all duration-500"
+                  className="bg-gp-blue h-full rounded-full transition-all duration-500"
                   style={{ width: `${roleData.progress}%` }}
                 />
               </div>
 
               {/* Checklist */}
-              <ul className="flex flex-col gap-2.5">
+              <div className="space-y-2.5">
                 {roleData.items.map((item, i) => (
-                  <li key={i} className="flex items-center gap-3">
+                  <div key={i} className="flex items-center gap-3">
+                    {item.done ? (
+                      <CheckCircle2 className="w-5 h-5 text-[#30A541] flex-shrink-0" />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full border-2 border-white/30 flex-shrink-0" />
+                    )}
                     <span
-                      className={cn(
-                        'w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border',
+                      className={`text-sm ${
                         item.done
-                          ? 'bg-gp-blue border-gp-blue'
-                          : 'border-white/30 bg-transparent',
-                      )}
-                    >
-                      {item.done && (
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="white"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                    </span>
-                    <span
-                      className={cn(
-                        'text-sm',
-                        item.done
-                          ? 'line-through text-white/40'
-                          : 'text-white/90',
-                      )}
+                          ? 'text-white/50 line-through'
+                          : 'text-white/90'
+                      }`}
                     >
                       {item.label}
                     </span>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
-          </section>
-        </div>
+
+          </div>
+        </main>
       </div>
     </div>
   );

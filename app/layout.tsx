@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import "@goodparty/serve-ui/globals.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-white text-gp-text min-h-screen">{children}</body>
+      <body className="bg-gp-bg-subtle text-gp-text min-h-screen">
+        {children}
+      </body>
     </html>
   );
 }
